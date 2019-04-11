@@ -1,5 +1,5 @@
 use std::time::Duration;
-use yew::services::{IntervalService, Task};
+use yew::services::{ConsoleService, IntervalService, Task};
 use yew::{html, Callback, Component, ComponentLink, Html, Renderable, ShouldRender};
 
 pub struct Model {
@@ -7,6 +7,7 @@ pub struct Model {
     callback_tick: Callback<()>,
     state: State,
     job: Option<Box<Task>>,
+    console: ConsoleService,
 }
 
 pub struct State {
@@ -26,49 +27,58 @@ pub enum Msg {
 pub struct Step {
     display_at_count: i32,
     instruction: &'static str,
-    requires_action: bool,
+    next_instruction: &'static str,
+    requires_action: Msg,
 }
 
 const INSTRUCTIONS: [Step; 8] = [
     Step {
         display_at_count: 0,
         instruction: "Set your AeroPress inverted and wet double paper filters with hot water.",
-        requires_action: true,
+        next_instruction: "",
+        requires_action: Msg::IncrementStep,
     },
     Step {
         display_at_count: 0,
         instruction: "Set your water temperature at 81 celsius degrees, put the coffee in and fill up with 70 grams of water.",
-        requires_action: true,
+        next_instruction: "",
+        requires_action: Msg::IncrementStep,
     },
     Step {
         display_at_count: 0,
         instruction: "Start timer and swirl your AeroPress around for 15 seconds.",
-        requires_action: true,
+        next_instruction: "",
+        requires_action: Msg::StartTimer,
     },
     Step {
         display_at_count: 15,
-        instruction: "Fill up with the remaining amount of water",
-        requires_action: false,
+        instruction: "Fill up with the remaining amount of water.",
+        next_instruction: "Wait until 60 seconds, then put the cap on.",
+        requires_action: Msg::IncrementStep,
     },
     Step {
         display_at_count: 60,
         instruction: "Put the cap on",
-        requires_action: false,
+        next_instruction: "Wait until 80 seconds, then invert.",
+        requires_action: Msg::IncrementStep,
     },
     Step {
         display_at_count: 80,
-        instruction: "Invert the areopress",
-        requires_action: false,
+        instruction: "Invert the areopress.",
+        next_instruction: "Wait until 90 seconds and start pluging.",
+        requires_action: Msg::IncrementStep,
     },
     Step {
         display_at_count: 90,
-        instruction: "Start plunging",
-        requires_action: false,
+        instruction: "Start plunging.",
+        next_instruction: "Aim to finish with 15 seconds.",
+        requires_action: Msg::IncrementStep,
     },
     Step {
         display_at_count: 105,
         instruction: "Done!",
-        requires_action: false,
+        next_instruction: "",
+        requires_action: Msg::CancelTimer,
     }
 ];
 
@@ -83,7 +93,11 @@ impl Component for Model {
             current_step: 0,
         };
 
+        let mut console = ConsoleService::new();
+        console.log("Ready to make coffee");
+
         Model {
+            console,
             state,
             callback_tick: link.send_back(|_| Msg::Tick),
             interval: IntervalService::new(),
@@ -106,6 +120,15 @@ impl Component for Model {
                 self.job = Some(Box::new(handle));
             }
             Msg::Tick => {
+                let step = &INSTRUCTIONS.get(self.state.current_step + 1);
+                match step {
+                    Some(some_step) => {
+                        if some_step.display_at_count == self.state.count {
+                            self.state.current_step += 1;
+                        };
+                    }
+                    None => {}
+                };
                 self.state.count += 1;
             }
             Msg::CancelTimer => {
@@ -125,7 +148,7 @@ impl Renderable<Model> for Model {
         html! {
             <div class="container",>
                 <section class="header",>
-                    <h1 class="title",>{ "Aeropress timer" }</h1>
+                    <h1 class="title",>{ "Aeropress timer" } </h1>
                     <i data-feather="coffee",></i>
                     <p>{ "Brew the perfect cup every time" }</p>
                 </section>
@@ -141,18 +164,42 @@ impl Renderable<Model> for Model {
 
 impl Model {
     fn view_instruction(&self) -> Html<Model> {
-        let has_job = self.job.is_some();
-        if has_job {
-            html! {
+        let empty_node: Html<Self> = html! {
+            <div></div>
+        };
+
+        let timer_html: Html<Self> = match self.job.is_some() {
+            true => html! {
                 <div class="timer",>{self.state.count}</div>
-            }
-        } else if self.state.has_started {
-            let step = &INSTRUCTIONS[self.state.current_step];
-            html! {
-                <>
-                    <p>{ step.instruction }</p>
-                    <button onclick=|_| Msg::IncrementStep,>{"Next"}</button>
-                </>
+            },
+            false => empty_node,
+        };
+
+        if self.state.has_started {
+            let step = &INSTRUCTIONS.get(self.state.current_step);
+            match step {
+                Some(some_step) => {
+                    let step_button = match some_step.requires_action {
+                        Msg::IncrementStep => {
+                            html! { <button onclick=|_| Msg::IncrementStep,>{"Next"}</button>}
+                        }
+                        Msg::StartTimer => {
+                            html! { <button onclick=|_| Msg::StartTimer,>{"Start Timer"}</button>}
+                        }
+                        _ => html! {</>},
+                    };
+                    html! {
+                        <>
+                            <p>{ some_step.instruction }</p>
+                            <p>{ some_step.next_instruction }</p>
+                            {step_button}
+                            {timer_html}
+                        </>
+                    }
+                }
+                None => html! {
+                    <div></div>
+                },
             }
         } else {
             html! {
