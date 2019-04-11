@@ -1,0 +1,10 @@
+.timer {
+  font-size: 10rem;
+  text-align: center;
+}
+
+.row-buttons {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+}
