@@ -6,8 +6,8 @@
   –––––––––––––––––––––––––––––––––––––––––––––––––– -->
   <meta charset="utf-8">
   <title>AeroPress timer</title>
-  <meta name="description" content="">
-  <meta name="author" content="">
+  <meta name="description" content="Simple timer for brewing coffee with an AeroPress">
+  <meta name="author" content="Alexander Keliris">
 
   <!-- Mobile Specific Metas
   –––––––––––––––––––––––––––––––––––––––––––––––––– -->
@@ -28,7 +28,7 @@
 
   <!-- Favicon
   –––––––––––––––––––––––––––––––––––––––––––––––––– -->
-  <link rel="icon" type="image/png" href="images/favicon.png">
+  <link rel="icon" type="image/svg" href="images/coffee.svg">
 
 </head>
 <body>
@@ -38,6 +38,14 @@
       // Initialise feather icons after wasm has loaded
       feather.replace()
     });
+    // Check that service workers are registered
+    if ('serviceWorker' in navigator) {
+      // Use the window load event to keep the page load performant
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js');
+      });
+    }
+
   </script>
 </body>
 </html>
