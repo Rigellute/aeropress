@@ -16,9 +16,9 @@ For production:
 cargo web deploy
 ```
 
-After running the `deploy` command, you can actually deploy the bundle to `now` with 
+Deploy to `now`
 ```sh
-now target/deploy
+sh deploy.sh
 ```
 
 ###### TODO
