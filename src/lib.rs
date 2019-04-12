@@ -39,7 +39,7 @@ pub struct Step {
 const INSTRUCTIONS: [Step; 8] = [
     Step {
         display_at_count: 0,
-        instruction: "Set your AeroPress inverted and wet a paper filters with hot water.",
+        instruction: "Set your AeroPress inverted and wet a paper filter with hot water.",
         next_instruction: "",
         on_click: Msg::IncrementStep,
     },
@@ -237,5 +237,14 @@ impl Model {
 fn empty_node() -> Html<Model> {
     html! {
         <div></div>
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn time_interval_is_one_second() {
+        use crate::TIMER_SPEED;
+        assert_eq!(TIMER_SPEED, 1000);
     }
 }
