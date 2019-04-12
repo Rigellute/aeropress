@@ -8,3 +8,24 @@
   flex-direction: row;
   justify-content: space-around;
 }
+
+.header {
+  margin-top: 2rem;
+}
+
+@keyframes slideInUp {
+  from {
+    transform: translate3d(0, 100%, 0);
+    visibility: visible;
+  }
+
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.secondary-instruction {
+  animation-name: slideInUp;
+  animation-duration: 1s;
+  animation-delay: 600ms;
+}
